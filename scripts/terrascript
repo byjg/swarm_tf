@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+os.system("python main.py > main.tf.json")
+
+del sys.argv[0]
+
+if len(sys.argv) > 0:
+    os.system("terraform " + " ".join(sys.argv))

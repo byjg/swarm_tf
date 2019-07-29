@@ -1,0 +1,2 @@
+-e git://github.com/mjuenema/python-terrascript.git@develop#egg=terrascript
+terraobject==0.0.1

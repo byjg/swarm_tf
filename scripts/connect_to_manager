@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+set -e
+
+usage() {
+    echo "Usage: $0 [-s] [-c] [-d]"
+    echo " e.g.:"
+    echo "   Connecting to the manager"
+    echo "       $0 -c"
+    echo
+    echo "   Disconnecting from the manager"
+    echo "       $0 -d"
+    echo
+    echo "   Get status"
+    echo "       $0 -s"
+    echo
+}
+
+MANAGER_IP=$(terraform output manager_ips | head -n 1 | cut -d, -f1)
+SSH_USER="root"
+REMOTE_HOST="localhost:2374"
+SSH_ARGS="-p 22 -fNL ${REMOTE_HOST}:/var/run/docker.sock ${SSH_USER}@${MANAGER_IP}"
+
+if $(ps ax | grep -q "[s]sh $SSH_ARGS"); then
+  STATUS="Connected"
+else
+  STATUS="Disconnected"
+fi
+
+
+while getopts ":scd" flag; do
+    case "$flag" in
+        s)
+            echo # ${STATUS}
+            ;;
+        c)
+            if [[ "$STATUS" != "Connected" ]]; then
+                echo "# Connecting..."
+                ssh ${SSH_ARGS}
+            fi
+            echo export DOCKER_HOST="tcp://$REMOTE_HOST"
+            ;;
+        d)
+            ps ax | grep "[s]sh $SSH_ARGS" | sed -e 's/^[[:space:]]*//' | cut -d" " -f1 | xargs kill -9
+            echo unset DOCKER_HOST
+            ;;
+        *)
+            usage
+            exit 1;
+            ;;
+    esac
+done
+
+if (( $OPTIND == 1 )); then
+    usage
+fi
+
