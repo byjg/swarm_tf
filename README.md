@@ -11,6 +11,7 @@ However, you'll rely the creation of the resources to Terraform. The best of the
 
 ```bash
 pip install swarm_tf=0.1.0
+pip install -e git://github.com/mjuenema/python-terrascript.git@develop#egg=terrascript   # See References below
 ```
 
 2 - Create your Cluster:
@@ -154,7 +155,7 @@ o.terrascript.add(output("manager_ids",
 print(o.terrascript.dump())
 ```
 
-# Utilities
+# Terraform Plan & Apply
 
 Instead to run terraform directly you can use the `terrascript` wrapper that will run the python, save the terraform json and then 
 execute the terraform action you want. 
@@ -162,10 +163,34 @@ execute the terraform action you want.
 For example, to run the terraform plan you can use this:  
 
 ```bash
-terrascript plan
+terrascript plan -out my.tfplan
+```
+
+and for apply you can use:
+
+```bash
+terrascript apply "my.tfplan"
 ```
 
 Note: Your main script need to named as `main.py` and need to be in the folder your running the `terrascript`
+
+# Deploying Services and Stacks
+
+You can only execute the Deploy on the machine. We provided a script to connect to the Manager, so this way you can
+deploy your stacks and services from you local machine. Execute these commands:
+
+```bash
+connect_to_manager -c
+export DOCKER_HOST=tcp://localhost:237
+```
+
+To disconnect just execute:
+
+```bash
+connect_to_manager -d
+unset DOCKER_HOST
+```
+
 
 # References:
 
