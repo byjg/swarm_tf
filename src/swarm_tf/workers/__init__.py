@@ -1,6 +1,6 @@
 import os
-from terrascript.digitalocean.d import *
-from terrascript.digitalocean.r import *
+from terrascript.digitalocean.r import digitalocean_droplet, digitalocean_volume
+from terrascript.digitalocean.d import digitalocean_volume as data_digitalocean_volume
 from terrascript.template.d import *
 from terrascript import connection, function, provisioner, output
 
@@ -104,12 +104,33 @@ class Worker:
     def create_workers(self):
         self.prepare_template()
         if not(self.variables.persistent_volumes is None):
-            self.variables.total_instances=len(self.variables.persistent_volumes)
+            self.variables.total_instances = len(self.variables.persistent_volumes)
             for i in range(self.variables.total_instances):
                 self.node(i+1, volume=self.variables.persistent_volumes[i])
         else:
             for i in range(self.variables.total_instances):
                 self.node(i+1)
+
+
+class VolumeClaim:
+    def __init__(self, o, region):
+        self.o = o
+        self.region = region
+
+    def existent(self, name):
+        volume = data_digitalocean_volume(name, name=name, region=self.region)
+        self.o.terrascript.add(volume)
+        return volume
+
+    def new(self, name, size):
+        volume = digitalocean_volume(name,
+                                     region=self.region,
+                                     name=name,
+                                     size=size,
+                                     initial_filesystem_type="ext4",
+                                     description="Volume " + name)
+        self.o.terrascript.add(volume)
+        return volume
 
 
 class WorkerVariables:

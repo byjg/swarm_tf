@@ -18,11 +18,10 @@ pip install swarm_tf=0.1.0
 ```python
 from terraobject import Terraobject
 from swarm_tf.workers import WorkerVariables
-from swarm_tf.workers import Worker
+from swarm_tf.workers import Worker, VolumeClaim
 from swarm_tf.managers import ManagerVariables
 from terrascript import provider, function, output
-from terrascript.digitalocean.d import digitalocean_volume as data_digitalocean_volume, \
-                                       digitalocean_ssh_key as data_digitalocean_ssh_key
+from terrascript.digitalocean.d import digitalocean_ssh_key as data_digitalocean_ssh_key
 from swarm_tf.managers import Manager
 from swarm_tf.common import get_user_data_script
 from terrascript.digitalocean.r import *
@@ -43,9 +42,8 @@ o.terrascript.add(provider("digitalocean", token=do_token))
 # ---------------------------------------------
 # Get Existing Object at Digital Ocean
 # ---------------------------------------------
-persistent_volume = data_digitalocean_volume("persistent_volume", name="volume-nyc3-01", region=region)
-o.terrascript.add(persistent_volume)
-o.shared['persistent_volume'] = persistent_volume
+volume = VolumeClaim(o, region)
+persistent_volume = volume.existent("volume-nyc3-01")
 
 sshkey = data_digitalocean_ssh_key("mysshkey", name="id_rsa")
 o.terrascript.add(sshkey)
