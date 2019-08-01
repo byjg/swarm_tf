@@ -176,16 +176,16 @@ class ManagerVariables:
     provision_ssh_key = "~/.ssh/id_rsa"
 
     # User used to log in to the droplets via ssh for issueing Docker commands"
-    provision_user = "core"
+    provision_user = "root"
 
     # Datacenter region in which the cluster will be created"
-    region = "ams3"
+    region = "nyc3"
 
     # Total number of managers in cluster"
     total_instances = 1
 
     # Droplet image used for the manager nodes"
-    image = "coreos-alpha"
+    image = "ubuntu-18-04-x64"
 
     # Droplet size of manager nodes"
     size = "s-1vcpu-1gb"

@@ -134,7 +134,7 @@ class WorkerVariables:
     provision_ssh_key = "~/.ssh/id_rsa"
 
     # User used to log in to the droplets via ssh for issueing Docker commands"
-    provision_user = "core"
+    provision_user = "root"
 
     # Datacenter region in which the cluster will be created"
     region = "nyc3"
@@ -143,7 +143,7 @@ class WorkerVariables:
     total_instances = 1
 
     # Operating system for the worker nodes"
-    image = "coreos-alpha"
+    image = "ubuntu-18-04-x64"
 
     # Droplet size of worker nodes
     size = "s-1vcpu-1gb"
