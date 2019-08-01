@@ -103,26 +103,32 @@ class Worker:
 
     def create_workers(self):
         self.prepare_template()
-        if not(self.variables.persistent_volumes is None):
-            self.variables.total_instances = len(self.variables.persistent_volumes)
-            for i in range(self.variables.total_instances):
-                self.node(i+1, volume=self.variables.persistent_volumes[i])
-        else:
-            for i in range(self.variables.total_instances):
-                self.node(i+1)
+        len_volumes = 0 if self.variables.persistent_volumes is None else len(self.variables.persistent_volumes)
+        for i in range(0, len_volumes):
+            self.node(i+1, volume=self.variables.persistent_volumes[i].create())
+        for i in range(len_volumes, self.variables.total_instances):
+            self.node(i+1)
 
 
 class VolumeClaim:
-    def __init__(self, o, region):
+    def __init__(self, o, region, name, size=None):
         self.o = o
         self.region = region
+        self.name = name
+        self.size = size
 
-    def existent(self, name):
+    def create(self):
+        if self.size is None:
+            return self.__existent(self.name)
+        else:
+            return self.__new(self.name, self.size)
+
+    def __existent(self, name):
         volume = data_digitalocean_volume(name, name=name, region=self.region)
         self.o.terrascript.add(volume)
         return volume
 
-    def new(self, name, size):
+    def __new(self, name, size):
         volume = digitalocean_volume(name,
                                      region=self.region,
                                      name=name,
