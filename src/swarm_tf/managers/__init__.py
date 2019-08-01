@@ -1,6 +1,5 @@
 import os
-from terrascript.digitalocean.d import *
-from terrascript.digitalocean.r import *
+from terrascript.digitalocean.r import digitalocean_droplet, digitalocean_volume, digitalocean_volume_attachment
 from terrascript.template.d import *
 
 from terrascript import connection, function, provisioner, output, resource, data

@@ -11,7 +11,6 @@ However, you'll rely the creation of the resources to Terraform. The best of the
 
 ```bash
 pip install swarm_tf=0.1.0
-pip install -e git://github.com/mjuenema/python-terrascript.git@develop#egg=terrascript   # See References below
 ```
 
 2 - Create your Cluster:

@@ -38,7 +38,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'terraobject==0.0.1'
+        'terraobject==0.0.1',
+        'terrascript==0.6.0'
     ],
     dependency_links=['git://github.com/mjuenema/python-terrascript.git@develop#egg=terrascript']
 )
