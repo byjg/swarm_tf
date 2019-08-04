@@ -10,9 +10,9 @@ class Worker:
     def __init__(self, o, variables):
         """type o: Terraobject"""
         """type variables: Variables"""
-        self.o=o
-        self.variables=variables
-        self.curdir=os.path.dirname(os.path.abspath(__file__))
+        self.o = o
+        self.variables = variables
+        self.curdir = os.path.dirname(os.path.abspath(__file__))
         if not("worker_nodes" in o.shared):
             self.o.shared["worker_nodes"] = []
 
@@ -55,7 +55,7 @@ class Worker:
                                 on_failure="continue"))
 
         if not(volume is None):
-            tmpl_attach = template_file("attach_volume_" + number_str,
+            tmpl_attach = template_file("attach_volume_{}_{}".format(self.variables.name, number_str),
                                         template=function.file(os.path.join(self.curdir, "scripts", "attach_volume.sh")),
                                         vars={
                                             "volume_name": "/dev/disk/by-id/scsi-0DO_Volume_" + volume.name,
