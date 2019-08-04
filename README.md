@@ -39,12 +39,6 @@ o = Terraobject()
 
 o.terrascript.add(provider("digitalocean", token=do_token))
 
-# ---------------------------------------------
-# Get Existing Object at Digital Ocean
-# ---------------------------------------------
-volume = VolumeClaim(o, region)
-persistent_volume = volume.existent("volume-nyc3-01")
-
 sshkey = data_digitalocean_ssh_key("mysshkey", name="id_rsa")
 o.terrascript.add(sshkey)
 o.shared['sshkey'] = sshkey
@@ -109,7 +103,7 @@ worker.create_workers()
 # Creating Persistent Nodes
 # ---------------------------------------------
 workerVar.name = "persistent"
-workerVar.persistent_volumes = [persistent_volume]
+workerVar.persistent_volumes = [VolumeClaim(o, region, "volume-nyc3-01")]
 persistent_worker = Worker(o, workerVar)
 persistent_worker.create_workers()
 

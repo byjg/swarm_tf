@@ -134,7 +134,7 @@ class VolumeClaim:
                                      name=name,
                                      size=size,
                                      initial_filesystem_type="ext4",
-                                     description="Volume " + name)
+                                     description="Swarm Volume {} of {} gb".format(name, size))
         self.o.terrascript.add(volume)
         return volume
 
