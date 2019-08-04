@@ -39,6 +39,9 @@ o = Terraobject()
 
 o.terrascript.add(provider("digitalocean", token=do_token))
 
+# ---------------------------------------------
+# Get Existing Object at Digital Ocean
+# ---------------------------------------------
 sshkey = data_digitalocean_ssh_key("mysshkey", name="id_rsa")
 o.terrascript.add(sshkey)
 o.shared['sshkey'] = sshkey
