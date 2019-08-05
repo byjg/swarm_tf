@@ -149,6 +149,11 @@ o.terrascript.add(output("manager_ids",
 print(o.terrascript.dump())
 ```
 
+# Volumes
+
+It is possible to use the `VolumeClaim` class to attach an existent or create a new volume to a droplet. This volume
+will be mounted in the host folder `/data`. So you can deploy your stack or service an map to this volume. 
+
 # Terraform Plan & Apply
 
 Instead to run terraform directly you can use the `terrascript` wrapper that will run the python, save the terraform json and then 
@@ -175,7 +180,7 @@ deploy your stacks and services from you local machine. Execute these commands:
 
 ```bash
 connect_to_manager -c
-export DOCKER_HOST=tcp://localhost:237
+export DOCKER_HOST=tcp://localhost:2377
 ```
 
 To disconnect just execute:

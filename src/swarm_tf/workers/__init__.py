@@ -58,7 +58,7 @@ class Worker:
             tmpl_attach = template_file("attach_volume_{}_{}".format(self.variables.name, number_str),
                                         template=function.file(os.path.join(self.curdir, "scripts", "attach_volume.sh")),
                                         vars={
-                                            "volume_name": "/dev/disk/by-id/scsi-0DO_Volume_" + volume.name,
+                                            "volume_name": "/dev/disk/by-id/scsi-0DO_Volume_sdb",
                                             "mount": "/data"
                                         })
             self.o.terrascript.add(tmpl_attach)
