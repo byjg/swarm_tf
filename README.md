@@ -16,14 +16,15 @@ pip install swarm_tf=0.1.0
 2 - Create your Cluster:
 
 ```python
+import sys
 from terraobject import Terraobject
 from swarm_tf.workers import WorkerVariables
-from swarm_tf.workers import Worker, VolumeClaim
+from swarm_tf.workers import Worker
 from swarm_tf.managers import ManagerVariables
 from terrascript import provider, function, output
 from terrascript.digitalocean.d import digitalocean_ssh_key as data_digitalocean_ssh_key
 from swarm_tf.managers import Manager
-from swarm_tf.common import get_user_data_script
+from swarm_tf.common import VolumeClaim, get_user_data_script
 from terrascript.digitalocean.r import *
 
 # Setup
@@ -107,6 +108,7 @@ worker.create_workers()
 # ---------------------------------------------
 workerVar.name = "persistent"
 workerVar.persistent_volumes = [VolumeClaim(o, region, "volume-nyc3-01")]
+workerVar.total_instances = 1
 persistent_worker = Worker(o, workerVar)
 persistent_worker.create_workers()
 
@@ -146,7 +148,12 @@ o.terrascript.add(output("worker_ids",
 o.terrascript.add(output("manager_ids",
                          value=[value.id for value in o.shared["manager_nodes"]]))
 
-print(o.terrascript.dump())
+if len(sys.argv) == 2 and sys.argv[1] == "label":
+    for obj in o.shared["__variables"]:
+        for i in range(1, obj["instances"]+1):
+            print("docker node update --label-add type={0} {0}_{1:02d}".format(obj["type"], i))
+else:
+    print(o.terrascript.dump())
 ```
 
 # Volumes

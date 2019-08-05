@@ -1,18 +1,14 @@
 import os
-from terrascript.digitalocean.r import digitalocean_droplet, digitalocean_volume, digitalocean_volume_attachment
 from terrascript.template.d import *
-
 from terrascript import connection, function, provisioner, output, resource, data
+from swarm_tf.common import Node
 
 
-class Manager:
+class Manager(Node):
 
     def __init__(self, o, variables):
-        """type o: Terraobject"""
-        """type variables: Variables"""
-        self.o=o
-        self.variables=variables
-        self.curdir=os.path.dirname(os.path.abspath(__file__))
+        super().__init__(o, variables)
+        self.curdir = os.path.dirname(os.path.abspath(__file__))
         self.o.shared["manager_nodes"] = []
 
     def prepare_template(self):
@@ -37,8 +33,6 @@ class Manager:
         self.o.terrascript.add(tmpl3)
 
     def node(self, number):
-        number_str = "{0:02d}".format(number)
-
         conn = connection(type="ssh",
                           user=self.variables.provision_user,
                           private_key=function.file(self.variables.provision_ssh_key),
@@ -91,36 +85,7 @@ class Manager:
                                         home_ca + "/install_certificates.sh",
                                     ]))
 
-        droplet_manager = digitalocean_droplet("manager_" + number_str,
-                                               ssh_keys=self.variables.ssh_keys,
-                                               image=self.variables.image,
-                                               region=self.variables.region,
-                                               size=self.variables.size,
-                                               private_networking="true",
-                                               backups=self.variables.backups,
-                                               ipv6="false",
-                                               user_data=self.variables.user_data,
-                                               tags=self.variables.tags,
-                                               count=1,
-                                               name="{}-{}.{}.{}".format(self.variables.name, number_str,
-                                                                         self.variables.region,
-                                                                         self.variables.domain),
-                                               connection=conn,
-                                               provisioner=prov)
-
-        self.o.shared["manager_nodes"].append(droplet_manager)
-        self.o.terrascript.add(droplet_manager)
-        self.o.terrascript.add(output(self.variables.name + "_" + number_str + "_id",
-                                      value=droplet_manager.id,
-                                      description="The manager node id"))
-        self.o.terrascript.add(output(self.variables.name + "_" + number_str + "_ipv4_public",
-                                      value=droplet_manager.ipv4_address,
-                                      description="The manager nodes public ipv4 address"))
-        self.o.terrascript.add(output(self.variables.name + "_" + number_str + "_ipv4_private",
-                                      value=droplet_manager.ipv4_address_private,
-                                      description="The manager nodes private ipv4 address"))
-
-        return droplet_manager
+        return self.create_droplet(droplet_type="manager", number=number, conn=conn, prov=prov)
 
     def create_managers(self):
         self.prepare_template()
@@ -213,3 +178,6 @@ class ManagerVariables:
     remote_api_key = None
 
     remote_api_certificate = None
+
+    # Persistent volume to attach to the Droplets (Array, one volume per droplet)"
+    persistent_volumes = None
