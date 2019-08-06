@@ -49,7 +49,7 @@ class Worker(Node):
                                 ],
                                 on_failure="continue"))
 
-        return self.create_droplet(droplet_type="manager", number=number, conn=conn, prov=prov)
+        return self.create_droplet(droplet_type="worker", number=number, conn=conn, prov=prov)
 
     def create_workers(self):
         self.prepare_template()
