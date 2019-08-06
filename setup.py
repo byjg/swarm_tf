@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="swarm_tf",
-    version="0.1.0",
+    version="0.2.0",
     scripts=["scripts/terrascript", "scripts/connect_to_manager"],
     author="Joao Gilberto Magalhaes",
     author_email="joao@byjg.com.br",
