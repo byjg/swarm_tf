@@ -10,7 +10,7 @@ However, you'll rely the creation of the resources to Terraform. The best of the
 1 - Add to your project the Swarm_TF:
 
 ```bash
-pip install swarm_tf=0.2.1
+pip install swarm_tf=0.2.2
 ```
 
 2 - Create your Cluster:
