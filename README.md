@@ -47,15 +47,6 @@ sshkey = data_digitalocean_ssh_key("mysshkey", name="id_rsa")
 o.terrascript.add(sshkey)
 o.shared['sshkey'] = sshkey
 
-# ---------------------------------------------
-# Creating Tags
-# ---------------------------------------------
-cluster_tag = digitalocean_tag("cluster", name="cluster")
-manager_tag = digitalocean_tag("manager", name="manager")
-worker_tag = digitalocean_tag("worker", name="worker")
-o.terrascript.add(cluster_tag)
-o.terrascript.add(manager_tag)
-o.terrascript.add(worker_tag)
 
 # ---------------------------------------------
 # Creating Swarm Manager
@@ -68,7 +59,7 @@ managerVar.region = region
 managerVar.domain = domain
 managerVar.total_instances = 1
 managerVar.user_data = user_data
-managerVar.tags = [cluster_tag.id, manager_tag.id]
+managerVar.tags = ["cluster", "manager"]
 managerVar.remote_api_ca = None
 managerVar.remote_api_key = None
 managerVar.remote_api_certificate = None
@@ -91,7 +82,7 @@ workerVar.region = region
 workerVar.domain = domain
 workerVar.total_instances = 2
 workerVar.user_data = user_data
-workerVar.tags = [cluster_tag.id, worker_tag.id]
+workerVar.tags = ["cluster", "worker"]
 workerVar.manager_private_ip = o.shared["manager_nodes"][0].ipv4_address_private
 workerVar.join_token = function.lookup(o.shared["swarm_tokens"].result, "worker", "")
 workerVar.ssh_keys = [sshkey.id]

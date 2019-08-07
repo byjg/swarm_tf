@@ -1,6 +1,6 @@
 import os
 from terrascript import function, output, provisioner
-from terrascript.digitalocean.r import digitalocean_droplet, digitalocean_volume
+from terrascript.digitalocean.r import digitalocean_droplet, digitalocean_volume, digitalocean_tag
 from terrascript.digitalocean.d import digitalocean_volume as data_digitalocean_volume
 from terrascript.template.d import template_file
 
@@ -17,6 +17,16 @@ class Node:
 
     def fmt_number(self, number):
         return "{0:02d}".format(number)
+
+    def get_tags_id(self):
+        tag_list = []
+        for tag in self.variables.tags:
+            if "tags:" + tag not in self.o.shared:
+                tag_obj = digitalocean_tag(tag, name=tag)
+                self.o.terrascript.add(tag_obj)
+                self.o.shared["tags:" + tag] = tag_obj
+            tag_list += [self.o.shared["tags:" + tag].id]
+        return tag_list
 
     def create_droplet(self, droplet_type, number, conn, prov):
         number_str = self.fmt_number(number)
@@ -50,7 +60,7 @@ class Node:
                                        backups=self.variables.backups,
                                        ipv6="false",
                                        user_data=self.variables.user_data,
-                                       tags=self.variables.tags,
+                                       tags=self.get_tags_id(),
                                        count=1,
                                        name="{}-{}.{}.{}".format(self.variables.name, number_str,
                                                                  self.variables.region,
