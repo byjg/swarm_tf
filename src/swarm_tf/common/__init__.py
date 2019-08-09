@@ -1,6 +1,7 @@
 import os
 from terrascript import function, output, provisioner
-from terrascript.digitalocean.r import digitalocean_droplet, digitalocean_volume, digitalocean_tag
+from terrascript.digitalocean.r import digitalocean_droplet, digitalocean_volume, digitalocean_tag, \
+    digitalocean_firewall
 from terrascript.digitalocean.d import digitalocean_volume as data_digitalocean_volume
 from terrascript.template.d import template_file
 
@@ -115,3 +116,60 @@ class VolumeClaim:
 
 def get_user_data_script():
     return function.file(os.path.join(os.path.dirname(__file__), "scripts", "install-docker-ce.sh"))
+
+
+def create_firewall(o, domain, inbound_ports, tag):
+    # droplet_ids = []
+    # for droplet in o.shared["manager_nodes"] + o.shared["worker_nodes"]:
+    #     droplet_ids += [droplet.id]
+    inbound_rules = [
+        {
+            "protocol": "icmp",
+            "source_tags": [tag]
+        },
+        {
+            "protocol": "tcp",
+            "port_range": "1-65535",
+            "source_tags": [tag]
+        },
+        {
+            "protocol": "udp",
+            "port_range": "1-65535",
+            "source_tags": [tag]
+        }
+    ]
+    for port in inbound_ports:
+        rule = {
+            "protocol": "tcp",
+            "port_range": port,
+            "source_addresses": ["0.0.0.0/0", "::/0"]
+        }
+        inbound_rules += [rule]
+
+    outbound_rules = [
+        {
+            "protocol": "icmp",
+            "destination_addresses": ["0.0.0.0/0", "::/0"],
+            "destination_tags": [tag]
+        },
+        {
+            "protocol": "tcp",
+            "port_range": "1-65535",
+            "destination_addresses": ["0.0.0.0/0", "::/0"],
+            "destination_tags": [tag]
+        },
+        {
+            "protocol": "udp",
+            "port_range": "1-65535",
+            "destination_addresses": ["0.0.0.0/0", "::/0"],
+            "destination_tags": [tag]
+        }
+    ]
+
+    firewall = digitalocean_firewall("firewall",
+                                     name="swarm.firewall.for.{}".format(domain),
+                                     tags=[tag],
+                                     inbound_rule=inbound_rules,
+                                     outbound_rule=outbound_rules
+                                     )
+    o.terrascript.add(firewall)

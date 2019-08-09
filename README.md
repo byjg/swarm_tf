@@ -5,6 +5,16 @@ You do not need to know the terraform configuration language (a.k.a HCL), just P
 
 However, you'll rely the creation of the resources to Terraform. The best of the two worlds :)
 
+# What this script create?
+
+- Full Docker Swarm cluster
+- Manager Node with auto-join
+- Worker Node with auto-join
+- Create or use an existing volume and attach it automatically to the node
+- Custom Digital Ocean tags
+- Firewall
+- (@todo soon) Create NFS Server that can be used inside the docker swarm cluster
+
 # Get Started
 
 1 - Add to your project the Swarm_TF:
@@ -24,7 +34,7 @@ from swarm_tf.managers import ManagerVariables
 from terrascript import provider, function, output
 from terrascript.digitalocean.d import digitalocean_ssh_key as data_digitalocean_ssh_key
 from swarm_tf.managers import Manager
-from swarm_tf.common import VolumeClaim, get_user_data_script
+from swarm_tf.common import VolumeClaim, get_user_data_script, create_firewall
 from terrascript.digitalocean.r import *
 
 # Setup
@@ -102,6 +112,11 @@ workerVar.persistent_volumes = [VolumeClaim(o, region, "volume-nyc3-01")]
 workerVar.total_instances = 1
 persistent_worker = Worker(o, workerVar)
 persistent_worker.create_workers()
+
+# ---------------------------------------------
+# Creating Firewall
+# ---------------------------------------------
+create_firewall(o, domain=domain, inbound_ports=[22, 80, 443, 9000], tag="cluster")
 
 
 # ---------------------------------------------
