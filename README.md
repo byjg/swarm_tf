@@ -12,7 +12,8 @@ However, you'll rely the creation of the resources to Terraform. The best of the
 - Worker Node with auto-join
 - Create or use an existing volume and attach it automatically to the node
 - Custom Digital Ocean tags
-- Firewall
+- Create a Firewall for the Cluster
+- Use existing DNS at Digital Ocean and add address record for each node.
 - (@todo soon) Create NFS Server that can be used inside the docker swarm cluster
 
 # Get Started
@@ -77,6 +78,7 @@ managerVar.ssh_keys = [sshkey.id]
 managerVar.provision_ssh_key = ssh_key
 managerVar.provision_user = "root"
 managerVar.connection_timeout = "2m"
+managerVar.create_dns = True
 
 manager = Manager(o, managerVar)
 manager.create_managers()
@@ -100,6 +102,7 @@ workerVar.provision_ssh_key = ssh_key
 workerVar.provision_user = "root"
 workerVar.persistent_volumes = None
 workerVar.connection_timeout = "2m"
+workerVar.create_dns = True
 
 worker = Worker(o, workerVar)
 worker.create_workers()

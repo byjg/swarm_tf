@@ -114,3 +114,6 @@ class WorkerVariables:
 
     # Persistent volume to attach to the Droplets (Array, one volume per droplet)"
     persistent_volumes = None
+
+    # Create the Host entries in the domain specified above
+    create_dns = False

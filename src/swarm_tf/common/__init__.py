@@ -1,7 +1,7 @@
 import os
 from terrascript import function, output, provisioner
 from terrascript.digitalocean.r import digitalocean_droplet, digitalocean_volume, digitalocean_tag, \
-    digitalocean_firewall
+    digitalocean_firewall, digitalocean_record
 from terrascript.digitalocean.d import digitalocean_volume as data_digitalocean_volume
 from terrascript.template.d import template_file
 
@@ -63,9 +63,8 @@ class Node:
                                        user_data=self.variables.user_data,
                                        tags=self.get_tags_id(),
                                        count=1,
-                                       name="{}-{}.{}.{}".format(self.variables.name, number_str,
-                                                                 self.variables.region,
-                                                                 self.variables.domain),
+                                       name="{}-{}.{}".format(self.variables.name, number_str,
+                                                              self.variables.domain),
                                        connection=conn,
                                        volume_ids=[volume.id] if not(volume is None) else None,
                                        provisioner=prov)
@@ -81,6 +80,16 @@ class Node:
         self.o.terrascript.add(output(self.variables.name + "_" + number_str + "_ipv4_private",
                                       value=droplet.ipv4_address_private,
                                       description="The {} nodes private ipv4 address".format(droplet_type)))
+
+        if self.variables.create_dns:
+            create_dns_entry(self.o,
+                             domain=self.variables.domain,
+                             entry=self.variables.name + "-" + number_str,
+                             ip=droplet.ipv4_address)
+            create_dns_entry(self.o,
+                             domain=self.variables.domain,
+                             entry=self.variables.name + "-" + number_str + "-internal",
+                             ip=droplet.ipv4_address_private)
 
         return droplet
 
@@ -173,3 +182,12 @@ def create_firewall(o, domain, inbound_ports, tag):
                                      outbound_rule=outbound_rules
                                      )
     o.terrascript.add(firewall)
+
+
+def create_dns_entry(o, domain, entry, ip):
+    o.terrascript.add(digitalocean_record("{}_{}".format(domain.replace(".", "_"), entry),
+                                          domain=domain,
+                                          type="A",
+                                          name=entry,
+                                          value=ip,
+                                          ttl=60))
