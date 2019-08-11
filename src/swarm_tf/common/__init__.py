@@ -19,6 +19,9 @@ class Node:
     def fmt_number(self, number):
         return "{0:02d}".format(number)
 
+    def fmt_name(self, name, number, delimiter="_"):
+        return "{}{}{}".format(name, delimiter, self.fmt_number(number))
+
     def get_tags_id(self):
         tag_list = []
         for tag in self.variables.tags:
@@ -31,12 +34,14 @@ class Node:
 
     def create_droplet(self, droplet_type, number, conn, prov):
         number_str = self.fmt_number(number)
+        droplet_name = self.fmt_name(self.variables.name, number)
+        droplet_name_dns = self.fmt_name(self.variables.name, number, "-")
 
         volume = None
         if self.variables.persistent_volumes is not None and number <= len(self.variables.persistent_volumes):
             volume = self.variables.persistent_volumes[number-1].create()
 
-            tmpl_attach = template_file("attach_volume_{}_{}".format(self.variables.name, number_str),
+            tmpl_attach = template_file("attach_volume_{}".format(droplet_name),
                                         template=function.file(os.path.join(self.curdir, "scripts", "attach_volume.sh")),
                                         vars={
                                             "volume_name": "/dev/disk/by-id/scsi-0DO_Volume_sdb",
@@ -52,7 +57,7 @@ class Node:
                                       "chmod +x /tmp/attach_volume.sh",
                                       "/tmp/attach_volume.sh"]))
 
-        droplet = digitalocean_droplet(self.variables.name + "_" + number_str,
+        droplet = digitalocean_droplet(droplet_name,
                                        ssh_keys=self.variables.ssh_keys,
                                        image=self.variables.image,
                                        region=self.variables.region,
@@ -63,35 +68,49 @@ class Node:
                                        user_data=self.variables.user_data,
                                        tags=self.get_tags_id(),
                                        count=1,
-                                       name="{}-{}.{}".format(self.variables.name, number_str,
-                                                              self.variables.domain),
+                                       name="{}.{}".format(droplet_name_dns, self.variables.domain),
                                        connection=conn,
                                        volume_ids=[volume.id] if not(volume is None) else None,
                                        provisioner=prov)
 
         self.o.shared[droplet_type + "_nodes"].append(droplet)
         self.o.terrascript.add(droplet)
-        self.o.terrascript.add(output(self.variables.name + "_" + number_str + "_id",
+        self.o.terrascript.add(output("{}_id".format(droplet_name),
                                       value=droplet.id,
                                       description="The {} node id".format(droplet_type)))
-        self.o.terrascript.add(output(self.variables.name + "_" + number_str + "_ipv4_public",
+        self.o.terrascript.add(output("{}_ipv4_public".format(droplet_name),
                                       value=droplet.ipv4_address,
                                       description="The {} nodes public ipv4 address".format(droplet_type)))
-        self.o.terrascript.add(output(self.variables.name + "_" + number_str + "_ipv4_private",
+        self.o.terrascript.add(output("{}_ipv4_private".format(droplet_name),
                                       value=droplet.ipv4_address_private,
                                       description="The {} nodes private ipv4 address".format(droplet_type)))
 
         if self.variables.create_dns:
-            create_dns_entry(self.o,
-                             domain=self.variables.domain,
-                             entry=self.variables.name + "-" + number_str,
-                             ip=droplet.ipv4_address)
-            create_dns_entry(self.o,
-                             domain=self.variables.domain,
-                             entry=self.variables.name + "-" + number_str + "-internal",
-                             ip=droplet.ipv4_address_private)
+            self.create_dns_entry(domain=self.variables.domain,
+                                  entry=droplet_name_dns,
+                                  ip=droplet.ipv4_address)
+            self.create_dns_entry(domain=self.variables.domain,
+                                  entry="{}-internal".format(droplet_name_dns),
+                                  ip=droplet.ipv4_address_private)
+            self.create_dns_entry(domain=self.variables.domain,
+                                  entry=self.variables.tags[0],
+                                  ip=droplet.ipv4_address,
+                                  name="{}-{}".format(droplet_name_dns, self.variables.tags[0]))
 
         return droplet
+
+    def create_dns_entry(self, domain, entry, ip, name=None):
+        if name is None:
+            name = "{}_{}".format(domain.replace(".", "_"), entry)
+        else:
+            name = "{}_{}".format(domain.replace(".", "_"), name)
+
+        self.o.terrascript.add(digitalocean_record(name,
+                                                   domain=domain,
+                                                   type="A",
+                                                   name=entry,
+                                                   value=ip,
+                                                   ttl=60))
 
 
 class VolumeClaim:
@@ -183,11 +202,3 @@ def create_firewall(o, domain, inbound_ports, tag):
                                      )
     o.terrascript.add(firewall)
 
-
-def create_dns_entry(o, domain, entry, ip):
-    o.terrascript.add(digitalocean_record("{}_{}".format(domain.replace(".", "_"), entry),
-                                          domain=domain,
-                                          type="A",
-                                          name=entry,
-                                          value=ip,
-                                          ttl=60))
