@@ -45,7 +45,7 @@ class Node:
                                         template=function.file(os.path.join(self.curdir, "scripts", "attach_volume.sh")),
                                         vars={
                                             "volume_name": "/dev/disk/by-id/scsi-0DO_Volume_sdb",
-                                            "mount": "/data"
+                                            "mount": self.variables.persistent_volumes[number-1].mount
                                         })
             self.o.terrascript.add(tmpl_attach)
             prov.append(provisioner("file",
@@ -114,11 +114,12 @@ class Node:
 
 
 class VolumeClaim:
-    def __init__(self, o, region, name, size=None):
+    def __init__(self, o, region, name, size=None, mount="/data"):
         self.o = o
         self.region = region
         self.name = name
         self.size = size
+        self.mount = mount
 
     def create(self):
         if self.size is None:
