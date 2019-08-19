@@ -21,7 +21,7 @@ However, you'll rely the creation of the resources to Terraform. The best of the
 1 - Add to your project the Swarm_TF:
 
 ```bash
-pip install swarm_tf=0.2.2
+pip install swarm_tf=0.2.4
 ```
 
 2 - Create your Cluster:
@@ -44,7 +44,7 @@ do_token = "DIGITAL OCEAN TOKEN"
 # Common
 domain = "swarm.example.com"
 region = "nyc3"
-ssh_key = "~/.ssh/id_rsa"
+ssh_key_file = "~/.ssh/id_rsa"           # Need to be full path
 user_data = get_user_data_script()
 
 o = Terraobject()
@@ -54,9 +54,9 @@ o.terrascript.add(provider("digitalocean", token=do_token))
 # ---------------------------------------------
 # Get Existing Object at Digital Ocean
 # ---------------------------------------------
-sshkey = data_digitalocean_ssh_key("mysshkey", name="id_rsa")
-o.terrascript.add(sshkey)
-o.shared['sshkey'] = sshkey
+do_sshkey = data_digitalocean_ssh_key("mysshkey", name="id_rsa")
+o.terrascript.add(do_sshkey)
+o.shared['sshkey'] = do_sshkey
 
 
 # ---------------------------------------------
@@ -74,8 +74,8 @@ managerVar.tags = ["cluster", "manager"]
 managerVar.remote_api_ca = None
 managerVar.remote_api_key = None
 managerVar.remote_api_certificate = None
-managerVar.ssh_keys = [sshkey.id]
-managerVar.provision_ssh_key = ssh_key
+managerVar.ssh_keys = [do_sshkey.id]
+managerVar.provision_ssh_key = ssh_key_file
 managerVar.provision_user = "root"
 managerVar.connection_timeout = "2m"
 managerVar.create_dns = True
@@ -97,8 +97,8 @@ workerVar.user_data = user_data
 workerVar.tags = ["cluster", "worker"]
 workerVar.manager_private_ip = o.shared["manager_nodes"][0].ipv4_address_private
 workerVar.join_token = function.lookup(o.shared["swarm_tokens"].result, "worker", "")
-workerVar.ssh_keys = [sshkey.id]
-workerVar.provision_ssh_key = ssh_key
+workerVar.ssh_keys = [do_sshkey.id]
+workerVar.provision_ssh_key = ssh_key_file
 workerVar.provision_user = "root"
 workerVar.persistent_volumes = None
 workerVar.connection_timeout = "2m"
@@ -157,10 +157,13 @@ o.terrascript.add(output("worker_ids",
 o.terrascript.add(output("manager_ids",
                          value=[value.id for value in o.shared["manager_nodes"]]))
 
+o.terrascript.add(output("private_key_path", value=ssh_key_file))
+
+
 if len(sys.argv) == 2 and sys.argv[1] == "label":
     for obj in o.shared["__variables"]:
         for i in range(1, obj["instances"]+1):
-            print("docker node update --label-add type={0} {0}_{1:02d}".format(obj["type"], i))
+            print("docker node update --label-add type={0} {0}-{1:02d}".format(obj["type"], i))
 else:
     print(o.terrascript.dump())
 ```

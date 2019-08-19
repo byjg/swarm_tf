@@ -17,9 +17,10 @@ usage() {
 }
 
 MANAGER_IP=$(terraform output manager_ips | head -n 1 | cut -d, -f1)
+PRIVATE_KEY=$(terraform output private_key_path)
 SSH_USER="root"
 REMOTE_HOST="localhost:2374"
-SSH_ARGS="-p 22 -fNL ${REMOTE_HOST}:/var/run/docker.sock ${SSH_USER}@${MANAGER_IP}"
+SSH_ARGS="-o IdentitiesOnly=true -p 22 -fNL ${REMOTE_HOST}:/var/run/docker.sock -i ${PRIVATE_KEY} ${SSH_USER}@${MANAGER_IP}"
 
 if $(ps ax | grep -q "[s]sh $SSH_ARGS"); then
   STATUS="Connected"

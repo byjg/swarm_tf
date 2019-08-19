@@ -44,7 +44,7 @@ class Node:
             tmpl_attach = template_file("attach_volume_{}".format(droplet_name),
                                         template=function.file(os.path.join(self.curdir, "scripts", "attach_volume.sh")),
                                         vars={
-                                            "volume_name": "/dev/disk/by-id/scsi-0DO_Volume_sdb",
+                                            "volume_name": "/dev/sda",
                                             "mount": self.variables.persistent_volumes[number-1].mount
                                         })
             self.o.terrascript.add(tmpl_attach)
